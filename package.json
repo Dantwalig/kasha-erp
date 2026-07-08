@@ -1,0 +1,11 @@
+{
+  "name": "kasha-erp",
+  "private": true,
+  "workspaces": ["backend", "frontend"],
+  "scripts": {
+    "dev:backend": "npm run start:dev --workspace backend",
+    "dev:frontend": "npm run dev --workspace frontend",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  }
+}

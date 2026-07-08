@@ -1,0 +1,28 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: kasha-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: kasha
+      POSTGRES_PASSWORD: kasha
+      POSTGRES_DB: kasha_erp
+    ports:
+      - "5432:5432"
+    volumes:
+      - kasha_postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: kasha-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - kasha_redis_data:/data
+
+volumes:
+  kasha_postgres_data:
+  kasha_redis_data:

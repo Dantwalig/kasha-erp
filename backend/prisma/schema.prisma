@@ -1,0 +1,215 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =========================================================
+// MODULE: Auth & RBAC
+// =========================================================
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  firstName    String?
+  lastName     String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  roles         UserRole[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // e.g. admin, manager, employee
+  description String?
+  createdAt   DateTime @default(now())
+
+  users       UserRole[]
+  permissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String @id @default(uuid())
+  code        String @unique // e.g. users:read, roles:manage
+  description String?
+
+  roles RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId String
+  roleId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// =========================================================
+// MODULE: Inventory
+// =========================================================
+// Product is the anchor entity most other modules (Procurement,
+// Warehouse, Manufacturing, Commerce) will reference later.
+
+model Category {
+  id          String     @id @default(uuid())
+  name        String
+  parentId    String?
+  createdAt   DateTime   @default(now())
+
+  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: SetNull)
+  children    Category[] @relation("CategoryToCategory")
+  products    Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id            String   @id @default(uuid())
+  sku           String   @unique
+  name          String
+  description   String?
+  categoryId    String?
+  unitOfMeasure String   @default("EA") // EA, KG, L, BOX, etc.
+  costPrice     Decimal  @default(0) @db.Decimal(12, 2)
+  sellPrice     Decimal  @default(0) @db.Decimal(12, 2)
+  reorderPoint  Int      @default(0) // trigger for replenishment (future Procurement hook)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  category    Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  stockItems  StockItem[]
+  transfers   StockTransfer[]
+  adjustments StockAdjustment[]
+
+  @@map("products")
+}
+
+model Location {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  type      String   @default("WAREHOUSE") // WAREHOUSE, STORE, VEHICLE, etc.
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  stockItems      StockItem[]
+  transfersFrom   StockTransfer[]   @relation("TransferFromLocation")
+  transfersTo     StockTransfer[]   @relation("TransferToLocation")
+  adjustments     StockAdjustment[]
+
+  @@map("locations")
+}
+
+// Current on-hand quantity of a product at a location. This is the
+// "live balance" - StockTransfer and StockAdjustment are the ledger
+// entries that update it.
+model StockItem {
+  productId  String
+  locationId String
+  quantity   Int      @default(0)
+  updatedAt  DateTime @updatedAt
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  location Location @relation(fields: [locationId], references: [id], onDelete: Cascade)
+
+  @@id([productId, locationId])
+  @@map("stock_items")
+}
+
+enum StockTransferStatus {
+  PENDING
+  IN_TRANSIT
+  COMPLETED
+  CANCELLED
+}
+
+// Movement of stock between two locations.
+model StockTransfer {
+  id             String              @id @default(uuid())
+  productId      String
+  fromLocationId String
+  toLocationId   String
+  quantity       Int
+  status         StockTransferStatus @default(PENDING)
+  notes          String?
+  createdAt      DateTime            @default(now())
+  completedAt    DateTime?
+
+  product      Product  @relation(fields: [productId], references: [id])
+  fromLocation Location @relation("TransferFromLocation", fields: [fromLocationId], references: [id])
+  toLocation   Location @relation("TransferToLocation", fields: [toLocationId], references: [id])
+
+  @@map("stock_transfers")
+}
+
+enum StockAdjustmentReason {
+  DAMAGE
+  LOSS
+  COUNT_CORRECTION
+  RETURN
+  OTHER
+}
+
+// Manual correction to a location's stock level (not part of a transfer).
+model StockAdjustment {
+  id         String                 @id @default(uuid())
+  productId  String
+  locationId String
+  delta      Int                    // positive = increase, negative = decrease
+  reason     StockAdjustmentReason
+  notes      String?
+  createdAt  DateTime               @default(now())
+
+  product  Product  @relation(fields: [productId], references: [id])
+  location Location @relation(fields: [locationId], references: [id])
+
+  @@map("stock_adjustments")
+}
+
+// =========================================================
+// Future modules will add their own models below as we build
+// them (Procurement, Warehouse, Finance, CRM, HR, ...).
+// =========================================================
