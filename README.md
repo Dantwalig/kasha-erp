@@ -19,8 +19,8 @@ be lifted out later if needed.
 ## Module Build Order
 
 1. ✅ **Auth & RBAC** — users, roles, permissions, JWT login/register
-2. ✅ **Inventory** — products, categories, locations, stock levels, transfers, adjustments (this step)
-3. Procurement — purchase requests/orders, suppliers, approvals
+2. ✅ **Inventory** — products, categories, locations, stock levels, transfers, adjustments
+3. ✅ **Procurement** — suppliers, purchase requests with approval workflow, purchase orders with receiving (this step)
 4. Warehouse Management — receiving, picking, packing, shipping
 5. Finance — GL, invoices, payments, budgets, assets
 6. CRM — leads, customers, opportunities, pipeline
@@ -146,6 +146,18 @@ postgresql://kasha:kasha@localhost:5432/kasha_erp?schema=public
 | POST   | /inventory/stock/transfers/:id/cancel | Cancel a transfer          | `inventory:write` |
 | GET    | /inventory/stock/adjustments | List adjustments             | `inventory:read` |
 | POST   | /inventory/stock/adjustments | Create adjustment (+/- qty)  | `inventory:write` |
+| GET    | /procurement/suppliers | List suppliers                        | `procurement:read` |
+| POST   | /procurement/suppliers | Create supplier                       | `procurement:write` |
+| GET    | /procurement/requests  | List purchase requests                | `procurement:read` |
+| POST   | /procurement/requests  | Submit a purchase request             | `procurement:write` |
+| PATCH  | /procurement/requests/:id/approve | Approve a request          | `procurement:approve` |
+| PATCH  | /procurement/requests/:id/reject | Reject a request (with reason) | `procurement:approve` |
+| GET    | /procurement/orders    | List purchase orders                  | `procurement:read` |
+| POST   | /procurement/orders    | Create a PO directly                  | `procurement:write` |
+| POST   | /procurement/orders/from-request/:requestId | Create a PO from an approved request | `procurement:write` |
+| PATCH  | /procurement/orders/:id/send | Mark PO as sent to supplier      | `procurement:write` |
+| PATCH  | /procurement/orders/:id/cancel | Cancel a PO                     | `procurement:write` |
+| POST   | /procurement/orders/:id/receive | Receive line item qty -> adds to Inventory stock | `inventory:write` |
 
 ## Roadmap note
 

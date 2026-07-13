@@ -24,6 +24,7 @@ model User {
 
   roles         UserRole[]
   refreshTokens RefreshToken[]
+  purchaseRequests PurchaseRequest[]
 
   @@map("users")
 }
@@ -122,6 +123,8 @@ model Product {
   stockItems  StockItem[]
   transfers   StockTransfer[]
   adjustments StockAdjustment[]
+  purchaseRequestItems PurchaseRequestItem[]
+  purchaseOrderItems   PurchaseOrderItem[]
 
   @@map("products")
 }
@@ -210,6 +213,105 @@ model StockAdjustment {
 }
 
 // =========================================================
+// MODULE: Procurement
+// =========================================================
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?
+  phone     String?
+  address   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  purchaseOrders PurchaseOrder[]
+
+  @@map("suppliers")
+}
+
+enum PurchaseRequestStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// An internal request to buy something. Needs approval before it can
+// become a PurchaseOrder sent to a supplier.
+model PurchaseRequest {
+  id              String                 @id @default(uuid())
+  requestedById   String
+  status          PurchaseRequestStatus  @default(DRAFT)
+  notes           String?
+  approvedById    String?
+  approvedAt      DateTime?
+  rejectionReason String?
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  requestedBy   User                  @relation(fields: [requestedById], references: [id])
+  items         PurchaseRequestItem[]
+  purchaseOrder PurchaseOrder?
+
+  @@map("purchase_requests")
+}
+
+model PurchaseRequestItem {
+  id                String @id @default(uuid())
+  purchaseRequestId String
+  productId         String
+  quantity          Int
+  notes             String?
+
+  purchaseRequest PurchaseRequest @relation(fields: [purchaseRequestId], references: [id], onDelete: Cascade)
+  product         Product         @relation(fields: [productId], references: [id])
+
+  @@map("purchase_request_items")
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SENT
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+// A PO sent to a supplier - either created directly or from an approved
+// PurchaseRequest. Receiving items here feeds directly into Inventory stock.
+model PurchaseOrder {
+  id                String              @id @default(uuid())
+  supplierId        String
+  purchaseRequestId String?             @unique
+  status            PurchaseOrderStatus @default(DRAFT)
+  expectedDate      DateTime?
+  notes             String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  supplier        Supplier             @relation(fields: [supplierId], references: [id])
+  purchaseRequest PurchaseRequest?     @relation(fields: [purchaseRequestId], references: [id])
+  items           PurchaseOrderItem[]
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id                String  @id @default(uuid())
+  purchaseOrderId   String
+  productId         String
+  quantity          Int
+  unitCost          Decimal @default(0) @db.Decimal(12, 2)
+  receivedQuantity  Int     @default(0)
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@map("purchase_order_items")
+}
+
+// =========================================================
 // Future modules will add their own models below as we build
-// them (Procurement, Warehouse, Finance, CRM, HR, ...).
+// them (Warehouse, Finance, CRM, HR, ...).
 // =========================================================

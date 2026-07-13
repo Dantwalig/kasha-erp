@@ -12,12 +12,24 @@ const PERMISSIONS = [
   'permissions:manage',
   'inventory:read',
   'inventory:write',
+  'procurement:read',
+  'procurement:write',
+  'procurement:approve',
 ];
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
   admin: PERMISSIONS, // admin gets everything
-  manager: ['users:read', 'roles:read', 'permissions:read', 'inventory:read', 'inventory:write'],
-  employee: ['users:read', 'inventory:read'],
+  manager: [
+    'users:read',
+    'roles:read',
+    'permissions:read',
+    'inventory:read',
+    'inventory:write',
+    'procurement:read',
+    'procurement:write',
+    'procurement:approve',
+  ],
+  employee: ['users:read', 'inventory:read', 'procurement:read', 'procurement:write'],
 };
 
 async function main() {

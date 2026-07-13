@@ -8,8 +8,8 @@ import { useAuth } from '@/lib/auth-context';
 const MODULES = [
   { name: 'Auth & RBAC', status: 'live', href: null },
   { name: 'Inventory', status: 'live', href: '/inventory' },
-  { name: 'Procurement', status: 'next', href: null },
-  { name: 'Warehouse Management', status: 'planned', href: null },
+  { name: 'Procurement', status: 'live', href: '/procurement' },
+  { name: 'Warehouse Management', status: 'next', href: null },
   { name: 'Finance', status: 'planned', href: null },
   { name: 'CRM', status: 'planned', href: null },
   { name: 'HR', status: 'planned', href: null },

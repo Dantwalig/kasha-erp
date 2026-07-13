@@ -6,6 +6,7 @@ import { UsersModule } from './users/users.module';
 import { RolesModule } from './roles/roles.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { InventoryModule } from './inventory/inventory.module';
+import { ProcurementModule } from './procurement/procurement.module';
 
 @Module({
   imports: [
@@ -16,7 +17,8 @@ import { InventoryModule } from './inventory/inventory.module';
     RolesModule,
     PermissionsModule,
     InventoryModule,
-    // Future modules (Procurement, Warehouse, Finance, CRM, HR, ...)
+    ProcurementModule,
+    // Future modules (Warehouse, Finance, CRM, HR, ...)
     // will be added here as their own self-contained modules.
   ],
 })

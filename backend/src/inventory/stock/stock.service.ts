@@ -20,6 +20,18 @@ export class StockService {
     });
   }
 
+  // Used by other modules (Procurement receiving, Warehouse putaway) to add
+  // stock as part of a legitimate business event - not a manual correction,
+  // so it doesn't go through the StockAdjustment ledger.
+  async receiveStock(productId: string, locationId: string, quantity: number) {
+    if (quantity <= 0) {
+      throw new BadRequestException('Received quantity must be positive');
+    }
+    return this.prisma.$transaction((tx) =>
+      this.upsertLevel(tx, productId, locationId, quantity),
+    );
+  }
+
   private async upsertLevel(
     tx: any,
     productId: string,
