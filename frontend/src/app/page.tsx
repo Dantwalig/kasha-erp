@@ -9,11 +9,11 @@ const MODULES = [
   { name: 'Auth & RBAC', status: 'live', href: null },
   { name: 'Inventory', status: 'live', href: '/inventory' },
   { name: 'Procurement', status: 'live', href: '/procurement' },
-  { name: 'Warehouse Management', status: 'next', href: null },
-  { name: 'Finance', status: 'planned', href: null },
-  { name: 'CRM', status: 'planned', href: null },
-  { name: 'HR', status: 'planned', href: null },
-  { name: 'Reporting & Dashboards', status: 'planned', href: null },
+  { name: 'Warehouse Management', status: 'live', href: '/warehouse' },
+  { name: 'Finance', status: 'live', href: '/finance' },
+  { name: 'CRM', status: 'live', href: '/crm' },
+  { name: 'HR', status: 'live', href: '/hr' },
+  { name: 'Reporting & Dashboards', status: 'live', href: '/reporting' },
 ];
 
 const STATUS_STYLES: Record<string, string> = {

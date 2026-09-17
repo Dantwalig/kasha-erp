@@ -20,15 +20,16 @@ be lifted out later if needed.
 
 1. ✅ **Auth & RBAC** — users, roles, permissions, JWT login/register
 2. ✅ **Inventory** — products, categories, locations, stock levels, transfers, adjustments
-3. ✅ **Procurement** — suppliers, purchase requests with approval workflow, purchase orders with receiving (this step)
-4. Warehouse Management — receiving, picking, packing, shipping
-5. Finance — GL, invoices, payments, budgets, assets
-6. CRM — leads, customers, opportunities, pipeline
-7. HR — employees, leave, recruitment, payroll
-8. Reporting & Dashboards
-9. Remaining modules (Supply Chain, Customer Service, Marketing, Field Service, Manufacturing,
-   Commerce, Workflow Automation, Notifications, Audit Logs, AI & Analytics) — added incrementally
-   after the core is solid.
+3. ✅ **Procurement** — suppliers, purchase requests with approval workflow, purchase orders with receiving
+4. ✅ **Warehouse Management** — pick lists (pick/pack/ship), barcode/QR scan lookup
+5. ✅ **Finance** — chart of accounts, AR invoices, AP bills (linkable to Purchase Orders), payments
+6. ✅ **CRM** — leads (with conversion to customer), customers, opportunities/sales pipeline
+7. ✅ **HR** — employees (with manager hierarchy), leave requests with approval, recruitment (job openings + candidates), basic payroll records
+8. ✅ **Reporting & Dashboards** — live cross-module KPIs and a sales pipeline chart (this step)
+
+**Core roadmap complete.** From here, remaining modules (Supply Chain, Customer Service,
+Marketing, Field Service, Manufacturing, Commerce, Workflow Automation, Notifications,
+Audit Logs, AI & Analytics) get added incrementally as needed.
 
 ## Project Structure
 
@@ -158,6 +159,49 @@ postgresql://kasha:kasha@localhost:5432/kasha_erp?schema=public
 | PATCH  | /procurement/orders/:id/send | Mark PO as sent to supplier      | `procurement:write` |
 | PATCH  | /procurement/orders/:id/cancel | Cancel a PO                     | `procurement:write` |
 | POST   | /procurement/orders/:id/receive | Receive line item qty -> adds to Inventory stock | `inventory:write` |
+| GET    | /warehouse/pick-lists  | List pick lists                       | `warehouse:read` |
+| POST   | /warehouse/pick-lists  | Create a pick list                    | `warehouse:write` |
+| POST   | /warehouse/pick-lists/:id/pick | Pick qty of a line -> removes from Inventory stock | `warehouse:write` |
+| PATCH  | /warehouse/pick-lists/:id/pack | Mark packed (once fully picked)  | `warehouse:write` |
+| PATCH  | /warehouse/pick-lists/:id/ship | Mark shipped (with tracking #)   | `warehouse:write` |
+| PATCH  | /warehouse/pick-lists/:id/cancel | Cancel a pick list             | `warehouse:write` |
+| GET    | /warehouse/scan?code=  | Look up a product by barcode or SKU   | `warehouse:read` |
+| GET    | /finance/accounts      | List chart of accounts                | `finance:read` |
+| POST   | /finance/accounts      | Create an account                     | `finance:write` |
+| GET    | /finance/invoices      | List AR invoices                      | `finance:read` |
+| POST   | /finance/invoices      | Create an invoice                     | `finance:write` |
+| PATCH  | /finance/invoices/:id/cancel | Cancel an invoice                | `finance:write` |
+| POST   | /finance/invoices/:id/payments | Record a payment (rolls to PAID when fully paid) | `finance:write` |
+| GET    | /finance/bills         | List AP bills                         | `finance:read` |
+| POST   | /finance/bills         | Create a bill (optionally linked to a PO) | `finance:write` |
+| PATCH  | /finance/bills/:id/cancel | Cancel a bill                      | `finance:write` |
+| POST   | /finance/bills/:id/payments | Record a payment                  | `finance:write` |
+| GET    | /finance/payments      | List all payments (AR + AP)           | `finance:read` |
+| GET    | /crm/leads             | List leads                            | `crm:read` |
+| POST   | /crm/leads             | Create a lead                         | `crm:write` |
+| PATCH  | /crm/leads/:id/status  | Update lead status                    | `crm:write` |
+| POST   | /crm/leads/:id/convert | Convert a qualified lead to a customer | `crm:write` |
+| GET    | /crm/customers         | List customers                        | `crm:read` |
+| POST   | /crm/customers         | Create a customer                     | `crm:write` |
+| GET    | /crm/opportunities     | List opportunities (sales pipeline)   | `crm:read` |
+| POST   | /crm/opportunities     | Create an opportunity                 | `crm:write` |
+| PATCH  | /crm/opportunities/:id/stage | Move opportunity to a new pipeline stage | `crm:write` |
+| GET    | /hr/employees          | List employees                        | `hr:read` |
+| POST   | /hr/employees          | Create an employee                    | `hr:write` |
+| PATCH  | /hr/employees/:id/status | Update employee status               | `hr:write` |
+| GET    | /hr/leave              | List leave requests                   | `hr:read` |
+| POST   | /hr/leave              | Submit a leave request                | `hr:write` |
+| PATCH  | /hr/leave/:id/approve  | Approve a leave request                | `hr:approve` |
+| PATCH  | /hr/leave/:id/reject   | Reject a leave request                 | `hr:approve` |
+| GET    | /hr/recruitment/jobs   | List job openings                     | `hr:read` |
+| POST   | /hr/recruitment/jobs   | Post a job opening                    | `hr:write` |
+| PATCH  | /hr/recruitment/jobs/:id/close | Close a job opening              | `hr:write` |
+| POST   | /hr/recruitment/candidates | Add a candidate to a job opening   | `hr:write` |
+| PATCH  | /hr/recruitment/candidates/:id/stage | Move candidate to a new stage | `hr:write` |
+| GET    | /hr/payroll            | List payroll records                  | `hr:read` |
+| POST   | /hr/payroll            | Create a payroll record                | `hr:write` |
+| PATCH  | /hr/payroll/:id/mark-paid | Mark a payroll record as paid       | `hr:write` |
+| GET    | /reporting/overview    | Live KPIs across Inventory, Procurement, Warehouse, Finance, CRM, HR | `reporting:read` |
 
 ## Roadmap note
 

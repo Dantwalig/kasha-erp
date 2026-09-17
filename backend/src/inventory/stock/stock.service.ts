@@ -32,6 +32,17 @@ export class StockService {
     );
   }
 
+  // Used by Warehouse picking to remove stock as part of fulfilling an
+  // outbound shipment - also a legitimate business event, not a correction.
+  async pickStock(productId: string, locationId: string, quantity: number) {
+    if (quantity <= 0) {
+      throw new BadRequestException('Picked quantity must be positive');
+    }
+    return this.prisma.$transaction((tx) =>
+      this.upsertLevel(tx, productId, locationId, -quantity),
+    );
+  }
+
   private async upsertLevel(
     tx: any,
     productId: string,

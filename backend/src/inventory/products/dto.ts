@@ -12,6 +12,10 @@ export class CreateProductDto {
   @IsString()
   sku: string;
 
+  @IsOptional()
+  @IsString()
+  barcode?: string;
+
   @IsString()
   name: string;
 

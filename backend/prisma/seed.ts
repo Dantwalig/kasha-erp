@@ -15,6 +15,16 @@ const PERMISSIONS = [
   'procurement:read',
   'procurement:write',
   'procurement:approve',
+  'warehouse:read',
+  'warehouse:write',
+  'finance:read',
+  'finance:write',
+  'crm:read',
+  'crm:write',
+  'hr:read',
+  'hr:write',
+  'hr:approve',
+  'reporting:read',
 ];
 
 const ROLE_PERMISSIONS: Record<string, string[]> = {
@@ -28,8 +38,30 @@ const ROLE_PERMISSIONS: Record<string, string[]> = {
     'procurement:read',
     'procurement:write',
     'procurement:approve',
+    'warehouse:read',
+    'warehouse:write',
+    'finance:read',
+    'finance:write',
+    'crm:read',
+    'crm:write',
+    'hr:read',
+    'hr:write',
+    'hr:approve',
+    'reporting:read',
   ],
-  employee: ['users:read', 'inventory:read', 'procurement:read', 'procurement:write'],
+  employee: [
+    'users:read',
+    'inventory:read',
+    'procurement:read',
+    'procurement:write',
+    'warehouse:read',
+    'warehouse:write',
+    'finance:read',
+    'crm:read',
+    'crm:write',
+    'hr:read',
+    'hr:write',
+  ],
 };
 
 async function main() {
